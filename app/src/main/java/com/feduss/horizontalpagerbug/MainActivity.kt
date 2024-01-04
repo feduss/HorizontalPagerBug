@@ -15,10 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -61,18 +57,12 @@ fun WearApp(mainActivity: MainActivity) {
 
     val testRoute = "testRoute"
 
-    var currentPage by remember {
-        mutableIntStateOf(0)
-    }
-
     val swipeToDismissBoxState = rememberSwipeToDismissBoxState()
     val navHostState =
         rememberSwipeDismissableNavHostState(swipeToDismissBoxState = swipeToDismissBoxState)
     val navController = rememberSwipeDismissableNavController()
 
-    val pagerState = rememberPagerState(pageCount =  {
-        4
-    })
+    val pagerState = rememberPagerState(pageCount = { 4 })
 
     val workaround = true
 
@@ -97,7 +87,6 @@ fun WearApp(mainActivity: MainActivity) {
                 modifier = Modifier.edgeSwipeToDismiss(swipeToDismissBoxState),
                 state = pagerState
             ) { selectedPage ->
-                currentPage = pagerState.currentPage
 
                 when (selectedPage) {
                     0 -> {
