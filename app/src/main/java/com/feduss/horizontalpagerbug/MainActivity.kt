@@ -14,13 +14,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.SwipeToDismissValue
-import androidx.wear.compose.foundation.edgeSwipeToDismiss
 import androidx.wear.compose.foundation.rememberSwipeToDismissBoxState
 import androidx.wear.compose.material.Card
 import androidx.wear.compose.material.PositionIndicator
@@ -28,23 +29,25 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
+import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavHostState
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
+import com.google.android.horologist.compose.layout.AppScaffold
 import com.google.android.horologist.compose.layout.ScalingLazyColumn
-import com.google.android.horologist.compose.layout.ScalingLazyColumnDefaults
 import com.google.android.horologist.compose.layout.ScalingLazyColumnState
 import com.google.android.horologist.compose.layout.ScreenScaffold
 import com.google.android.horologist.compose.layout.rememberColumnState
 import com.google.android.horologist.compose.layout.scrollAway
-import com.google.android.horologist.compose.navscaffold.composable
 import com.google.android.horologist.compose.pager.PagerScreen
 import java.util.Locale
-import kotlin.system.exitProcess
+
+typealias ComposableFun = @Composable () -> Unit
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             WearApp(mainActivity = this)
         }
@@ -57,6 +60,20 @@ fun WearApp(mainActivity: MainActivity) {
 
     val testRoute = "testRoute"
 
+    val firstPageColumnState = rememberColumnState()
+    val secondPageColumnState = rememberColumnState()
+    val thirdPageColumnState = rememberColumnState()
+    val fourthPageColumnState = rememberColumnState()
+
+    val columnStates = remember {
+        listOf(
+            firstPageColumnState,
+            secondPageColumnState,
+            thirdPageColumnState,
+            fourthPageColumnState,
+        )
+    }
+
     val swipeToDismissBoxState = rememberSwipeToDismissBoxState()
     val navHostState =
         rememberSwipeDismissableNavHostState(swipeToDismissBoxState = swipeToDismissBoxState)
@@ -64,69 +81,64 @@ fun WearApp(mainActivity: MainActivity) {
 
     val pagerState = rememberPagerState(pageCount = { 4 })
 
-    val workaround = true
-
-    if (workaround) {
-        LaunchedEffect(swipeToDismissBoxState.currentValue) {
-            if (swipeToDismissBoxState.currentValue == SwipeToDismissValue.Dismissed) {
-                closeApp(mainActivity)
-            }
-        }
-    }
-
-    SwipeDismissableNavHost(
-        modifier = Modifier.background(Color.Black),
-        startDestination = testRoute,
-        navController = navController,
-        state = navHostState
+    AppScaffold(
+        timeText = { CustomTimeText(columnState = columnStates[pagerState.currentPage]) }
     ) {
 
-        composable(route = testRoute) {
+        SwipeDismissableNavHost(
+            modifier = Modifier.background(Color.Black),
+            startDestination = testRoute,
+            navController = navController,
+            state = navHostState
+        ) {
 
-            PagerScreen(
-                modifier = Modifier.edgeSwipeToDismiss(swipeToDismissBoxState),
-                state = pagerState
-            ) { selectedPage ->
+            composable(route = testRoute) {
 
-                when (selectedPage) {
-                    0 -> {
-                        PageView {
-                            ViewWithList(
-                                pageNumber = selectedPage,
-                                columnState = it,
-                                mainActivity = mainActivity
-                            )
+                PagerScreen(
+                    //modifier = Modifier.edgeSwipeToDismiss(swipeToDismissBoxState),
+                    state = pagerState
+                ) { selectedPage ->
+
+                    when (selectedPage) {
+                        0 -> {
+                            PageView(columnState = columnStates[selectedPage]) {
+                                ViewWithList(
+                                    pageNumber = selectedPage,
+                                    columnState = it,
+                                    mainActivity = mainActivity
+                                )
+                            }
                         }
+
+                        1 -> {
+                            PageView(columnState = columnStates[selectedPage]) {
+                                ViewWithList(
+                                    pageNumber = selectedPage,
+                                    columnState = it,
+                                    mainActivity = mainActivity
+                                )
+                            }
+                        }
+
+                        2 -> {
+                            PageView(columnState = columnStates[selectedPage]) {
+                                ViewWithList(
+                                    pageNumber = selectedPage,
+                                    columnState = it,
+                                    mainActivity = mainActivity
+                                )
+                            }
+                        }
+
+                        3 ->
+                            PageView(columnState = columnStates[selectedPage]) {
+                                ViewWithList(
+                                    pageNumber = selectedPage,
+                                    columnState = it,
+                                    mainActivity = mainActivity
+                                )
+                            }
                     }
-
-                    1 -> {
-                        PageView {
-                            ViewWithList(
-                                pageNumber = selectedPage,
-                                columnState = it,
-                                mainActivity = mainActivity
-                            )
-                        }
-                    }
-
-                    2 -> {
-                        PageView {
-                            ViewWithList(
-                                pageNumber = selectedPage,
-                                columnState = it,
-                                mainActivity = mainActivity
-                            )
-                        }
-                    }
-
-                    3 ->
-                        PageView {
-                            ViewWithList(
-                                pageNumber = selectedPage,
-                                columnState = it,
-                                mainActivity = mainActivity
-                            )
-                        }
                 }
             }
         }
@@ -135,17 +147,18 @@ fun WearApp(mainActivity: MainActivity) {
 
 @OptIn(ExperimentalHorologistApi::class)
 @Composable
-fun PageView(content: @Composable BoxScope.(ScalingLazyColumnState) -> Unit) {
-
-    val columnState = rememberColumnState(ScalingLazyColumnDefaults.responsive())
+fun PageView(columnState: ScalingLazyColumnState, content: @Composable BoxScope.(ScalingLazyColumnState) -> Unit) {
 
     ScreenScaffold(
         positionIndicator = { PositionIndicator(scalingLazyListState = columnState.state) },
-        timeText = { CustomTimeText(columnState = columnState) },
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)) {
-        content(columnState)
+
+        val originalTouchSlop = LocalViewConfiguration.current.touchSlop
+        CustomTouchSlopProvider(newTouchSlop = originalTouchSlop * 2) {
+            content(columnState)
+        }
     }
 }
 
@@ -197,7 +210,27 @@ fun ViewWithList(pageNumber: Int, columnState: ScalingLazyColumnState, mainActiv
     }
 }
 
-private fun closeApp(activity: MainActivity) {
-    activity.finishAndRemoveTask()
-    exitProcess(0)
+// MARK: - Utility code by Steve Bower
+
+@Composable
+internal fun CustomTouchSlopProvider(
+    newTouchSlop: Float,
+    content: @Composable () -> Unit
+) {
+    CompositionLocalProvider(
+        LocalViewConfiguration provides CustomTouchSlop(
+            newTouchSlop,
+            LocalViewConfiguration.current
+        )
+    ) {
+        content()
+    }
+}
+
+class CustomTouchSlop(
+    private val customTouchSlop: Float,
+    currentConfiguration: ViewConfiguration
+) : ViewConfiguration by currentConfiguration {
+    override val touchSlop: Float
+        get() = customTouchSlop
 }
