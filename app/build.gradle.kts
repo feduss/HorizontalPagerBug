@@ -37,7 +37,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
+        kotlinCompilerExtensionVersion = "1.5.11"
     }
     packaging {
         resources {
@@ -50,9 +50,9 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation ("androidx.wear.compose:compose-ui-tooling:1.3.0")
-    implementation("androidx.wear.compose:compose-foundation:1.3.0")
-    implementation("androidx.wear.compose:compose-material:1.3.0")
-    implementation("androidx.wear.compose:compose-navigation:1.3.0")
-    implementation("com.google.android.horologist:horologist-compose-layout:0.5.20")
+    implementation ("androidx.wear.compose:compose-ui-tooling:1.4.0-alpha05")
+    implementation("androidx.wear.compose:compose-foundation:1.4.0-alpha05")
+    implementation("androidx.wear.compose:compose-material:1.4.0-alpha05")
+    implementation("androidx.wear.compose:compose-navigation:1.4.0-alpha05")
+    implementation("com.google.android.horologist:horologist-compose-layout:0.6.6")
 }
